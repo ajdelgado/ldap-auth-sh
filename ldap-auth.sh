@@ -217,7 +217,7 @@ result=$?
 log "Returned ${result}"
 
 entries=0
-if [ "${result}" -eq "0" ] && [ -n "$BASEDN" ]; then
+if [ "${result}" != "0" ] && [ -n "$BASEDN" ]; then
   entries=$(echo "$output" | grep -cie '^dn\s*:')
   [ "$entries" != "1" ] && result=1
 fi
@@ -231,7 +231,7 @@ if [ -n "$DEBUG" ]; then
 EOF
 fi
 
-if [ "${result}" -ne "0" ]; then
+if [ "${result}" != "0" ]; then
   log "User '$username' failed to authenticate."
   type on_auth_failure > /dev/null && on_auth_failure
   exit 1
