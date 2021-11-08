@@ -124,7 +124,6 @@ ldap_auth_curl() {
   attrs=$(echo "$ATTRS" | sed "s/ /,/g")
   output=$(curl $verbose -s -m "$TIMEOUT" -u "$USERDN:$password" "$SERVER/$BASEDN?dn,$attrs?$SCOPE?$FILTER")
   return_code="$?"
-  log "Returned ${return_code}"
   [ "${return_code}" -ne "0" ] && return 1
   return 0
 }
@@ -215,6 +214,7 @@ case "$CLIENT" in
 esac
 
 result=$?
+log "Returned ${result}"
 
 entries=0
 if [ $result -eq 0 ] && [ -n "$BASEDN" ]; then
