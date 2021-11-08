@@ -231,7 +231,7 @@ if [ -n "$DEBUG" ]; then
 EOF
 fi
 
-if [ $result -ne 0 ]; then
+if [ "${result}" -ne "0" ]; then
   log "User '$username' failed to authenticate."
   type on_auth_failure > /dev/null && on_auth_failure
   exit 1
