@@ -217,7 +217,7 @@ result=$?
 log "Returned ${result}"
 
 entries=0
-if [ $result -eq 0 ] && [ -n "$BASEDN" ]; then
+if [ "${result}" -eq "0" ] && [ -n "$BASEDN" ]; then
   entries=$(echo "$output" | grep -cie '^dn\s*:')
   [ "$entries" != "1" ] && result=1
 fi
