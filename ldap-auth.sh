@@ -122,9 +122,9 @@ ldap_dn_escape() {
 ldap_auth_curl() {
 	[ -z "$DEBUG" ] || verbose="-v"
 	attrs=$(echo "$ATTRS" | sed "s/ /,/g")
-	output=$(curl $verbose -s -m "$TIMEOUT" -u "$USERDN:$password" \
-		"$SERVER/$BASEDN?dn,$attrs?$SCOPE?$FILTER")
-	[ $? -ne 0 ] && return 1
+	output=$(curl $verbose -s -m "$TIMEOUT" -u "$USERDN:$password" "$SERVER/$BASEDN?dn,$attrs?$SCOPE?$FILTER")
+	return_code="$?"
+	[ $return_code -ne 0 ] && return 1
 	return 0
 }
 
@@ -132,13 +132,16 @@ ldap_auth_ldapsearch() {
 	common_opts="-o nettimeout=$TIMEOUT -H $SERVER -x"
 	[ -z "$DEBUG" ] || common_opts="-v $common_opts"
 	if [ -z "$BASEDN" ]; then
+		# shellcheck disable=SC2086
 		output=$(ldapwhoami $common_opts -D "$USERDN" -w "$password")
 	else
+		# shellcheck disable=SC2086
 		output=$(ldapsearch $common_opts -LLL \
 			-D "$USERDN" -w "$password" \
 			-s "$SCOPE" -b "$BASEDN" "$FILTER" dn $ATTRS)
 	fi
-	[ $? -ne 0 ] && return 1
+	return_code="$?"
+	[ $return_code -ne 0 ] && return 1
 	return 0
 }
 
@@ -159,6 +162,7 @@ elif [ ! -r "$CONFIG_FILE" ]; then
 	log "'$CONFIG_FILE': no read permission"
 	exit 2
 fi
+# shellcheck disable=SC1090
 . "$CONFIG_FILE"
 
 # Validate config.
@@ -171,12 +175,12 @@ if [ -z "$TIMEOUT" ]; then
 	log "TIMEOUT needs to be configured."
 	err=1
 fi
-if [ ! -z "$BASEDN" ]; then
+if [ -n "$BASEDN" ]; then
 	if [ -z "$SCOPE" ] || [ -z "$FILTER" ]; then
 		log "BASEDN, SCOPE and FILTER may only be configured together."
 		err=1
 	fi
-elif [ ! -z "$ATTRS" ]; then
+elif [ -n "$ATTRS" ]; then
 	log "Configuring ATTRS only makes sense when enabling searching."
 	err=1
 fi
@@ -185,7 +189,7 @@ fi
 if [ -z "$username" ] || [ -z "$password" ]; then
 	log "Need username and password environment variables."
 	err=1
-elif [ ! -z "$USERNAME_PATTERN" ]; then
+elif [ -n "$USERNAME_PATTERN" ]; then
 	username_match=$(echo "$username" | sed -r "s/$USERNAME_PATTERN/x/")
 	if [ "$username_match" != "x" ]; then
 		log "Username '$username' has an invalid format."
@@ -212,12 +216,12 @@ esac
 result=$?
 
 entries=0
-if [ $result -eq 0 ] && [ ! -z "$BASEDN" ]; then
+if [ $result -eq 0 ] && [ -n "$BASEDN" ]; then
 	entries=$(echo "$output" | grep -cie '^dn\s*:')
 	[ "$entries" != "1" ] && result=1
 fi
 
-if [ ! -z "$DEBUG" ]; then
+if [ -n "$DEBUG" ]; then
 	cat >&2 <<-EOF
 		Result: $result
 		Number of entries: $entries
