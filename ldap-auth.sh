@@ -125,7 +125,7 @@ ldap_auth_curl() {
   output=$(curl $verbose -s -m "$TIMEOUT" -u "$USERDN:$password" "$SERVER/$BASEDN?dn,$attrs?$SCOPE?$FILTER")
   return_code="$?"
   log "Returned ${return_code}"
-  [ ${return_code} -ne 0 ] && return 1
+  [ "${return_code}" -ne "0" ] && return 1
   return 0
 }
 
